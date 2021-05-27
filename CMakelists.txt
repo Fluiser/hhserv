@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.10)
+project(g)
+add_executable(g main.cpp)
+
+set(INCLUDE_DIR "D:/soft/VisualStudio/VC/Tools/MSVC/14.27.29110/include")
+
+#cfg
+set(CMAKE_CXX_STANDART 17)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -NODEFAULTLIB:library")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -NODEFAULTLIB:library")
+
+#boost
+set(Boost_INCLUDE_DIR "D:/soft/VisualStudio/VC/Tools/MSVC/14.27.29110/include/boost")
+set(Boost_LIBRARIES_CMAKE ${Boost_INCLUDE_DIR}/stage/lib/)
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME ON)
+find_package(Boost 1.73.0 REQUIRED)
+
+#prj
+include_directories(${INCLUDE_DIR})
+target_link_libraries(g ${Boost_LIBRARIES})
