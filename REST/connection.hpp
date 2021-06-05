@@ -1,5 +1,7 @@
 #pragma once
 #include "util.cpp"
+#include "request_parser.hpp"
+#include <boost/tuple/tuple.hpp>
 #include <boost/logic/tribool.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
@@ -20,8 +22,9 @@ namespace asio = boost::asio;
         boost::array<char, 1024*8> buffer;
 
     public:
-        connection(const connection&) = default;
-        connection() noexcept: socket(serv), strand(serv) {}
+        connection(const connection&) = delete;
+        connection(boost::asio::io_service& serv,
+                   http::r_handler) noexcept: socket(serv), strand(serv) {}
 
         /*
          * void connection::start()
@@ -42,37 +45,6 @@ namespace asio = boost::asio;
         {
             return socket;
         }
-
-        void handler_read(
-                    const boost::system::error_code& ec,
-                    size_t bsize
-                )
-        {
-            if(ec)
-            {
-                boost::tribool res;
-                boost:tie(res, boost::tuples::ignore) = http::request_parser;
-            }
-            else
-            {
-                d_log("ERROR CODE: ", ec);
-            }
-        }
-
-        void exe()
-        {
-            socket.async_read_some(
-                        asio::buffer(buffer),
-                        strand.wrap(
-                                    boost::bind(&connection::handler_read, shared_from_this()/*Shit*/,
-                                                asio::placeholders::error,
-                                                asio::placeholders::bytes_transferred
-                                                )
-                                )
-                    );
-
-        }
-
 
     };
 }
