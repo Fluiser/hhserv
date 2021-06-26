@@ -3,8 +3,9 @@
 #include "reply.hpp"
 #include <string>
 #include <sstream>
-#include <hex>
+#include <fstream>
 #include <boost/noncopyable.hpp>
+#include "mime_types.hpp"
 
 namespace http {
     class r_handler: private boost::noncopyable {
@@ -56,6 +57,39 @@ namespace http {
                 reply = reply::stock_reply(reply::bad_request);
                 return;
             }
+
+            if(request_path[request_path.size()-1] == '/') {
+                request_path += "index.html";
+            }
+
+            size_t last_slash_pos = request_path.find_last_of('/');
+            size_t last_dot_pos = request_path.find_last_of('.');
+            std::string extension {};
+
+            if(last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos) {
+                extension = request_path.substr(last_dot_pos+1);
+            }
+
+            std::string full_path = doc_root + request_path;
+            std::ifstream is(full_path, std::ios::in | std::ios::binary);
+            if(!is) {
+                reply = reply::stock_reply(reply::not_found);
+                return;
+            }
+
+            reply.status = reply_t::ok;
+            char buff[512];
+            while(is.read(buff, sizeof(buff)).gcount() > 0)
+            {
+                reply.content.append(buff, is.gcount());
+            }
+
+            reply.headers.resize(2);
+            reply.headers[0].field = "Content-Length";
+            reply.headers[0].value = boost::lexical_cast<std::string>(reply.content.size());
+            reply.headers[1].field = "Content-Type";
+            reply.headers[1].value = mime_types::extension_to_type(extension);
+
         }
 
     };
