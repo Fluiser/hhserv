@@ -20,7 +20,8 @@ namespace asio = boost::asio;
         asio::ip::tcp::socket socket;
         boost::asio::io_service::strand strand;
         boost::array<char, 1024*8> buffer;
-
+        http::request_t request {};
+        http::r_parser r_parser;
     public:
         connection(const connection&) = delete;
         connection(boost::asio::io_service& serv,
@@ -46,5 +47,28 @@ namespace asio = boost::asio;
             return socket;
         }
 
+        void start()
+        {
+            this->socket.async_read_some(
+                    boost::asio::buffer(this->buffer),
+                    strand.wrap(
+                            boost::bind(&connection::handle_read, shared_from_this(),
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred
+                            )
+                    ));
+        }
+
+        void handle_read(const boost::system::error_code& ec,
+                         size_t blength)
+        {
+            if(!ec) {
+                boost::tribool result;
+                boost::tie(result, boost::tuples::ignore) = this->r_parser.parse(request, buffer.data(), buffer.data() + blength);
+                if(result) {
+
+                }
+            }
+        }
     };
 }
